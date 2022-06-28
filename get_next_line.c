@@ -6,34 +6,48 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/28 18:30:35 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/28 19:47:27 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/28 22:15:49 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-char	*str_size_chr(char *str, size_t size, char c)
+#include "get_next_line.h"
+
+char	*str_size_chr(char **str, char c)
 {
-	size_t	i;
+	int	i;
 
 	i = 0;
-	while (i < size)
+	while ((*str)[i])
 	{
-		if (str[i] == c)
-			return (str);
+		if ((*str)[i] == c)
+			return (&(*str)[i]);
 		i++;
 	}
 	return (NULL);
 }
 
-int	s_len(char *s)
+char	*m_join(char	*str, char	*buffer, ssize_t b_size)
 {
-	int	i;
+	ssize_t	i;
+	ssize_t	j;
+	char	*new;
 
 	i = 0;
-	while (*s++)
+	while (str[i])
 		i++;
-	return (i);
+	new = (char *) malloc(i + b_size + 1);
+	if (!new)
+		return (NULL);
+	i = -1;
+	while (str[++i])
+		new[i] = str[i];
+	j = -1;
+	while (++j < b_size)
+		new[j + i] = buffer[j];
+	new[j + i] = '\0';
+	return (new);
 }
-
+#include <stdio.h>
 void	store_static(char **m_line, char *buffer, ssize_t bytes_read)
 {
 	ssize_t	i;
@@ -44,20 +58,26 @@ void	store_static(char **m_line, char *buffer, ssize_t bytes_read)
 		*m_line = (char *) malloc(bytes_read + 1);
 		if (!*m_line)
 			return ;
-		i = -1;
-		while (++i < bytes_read)
-			*m_line[i] = buffer[i];
-		*m_line[i] = '\0';
+		i = 0;
+		while (i < bytes_read)
+		{
+			(*m_line)[i] = buffer[i];
+			i++;
+		}
+		(*m_line)[i] = '\0';
 	}
 	else
 	{
-		i = (ssize_t) s_len(*m_line);
-		new = (char *) malloc(bytes_read + i + 1);
-		
+		new = m_join(*m_line, buffer, bytes_read);
+		printf("join: %s\n", new);
+		if (!new)
+			return ;
+		free(*m_line);
+		*m_line = new;
 	}
 }
 
-char	*read_buffer(char **m_line)
+char	*read_buffer(int fd, char **m_line)
 {
 	char		*buffer;
 	char		*end;
@@ -71,18 +91,56 @@ char	*read_buffer(char **m_line)
 		bytes_read = read(fd, buffer, BUFFER_SIZE);
 		if (bytes_read <= 0)
 			break ;
-		end = str_size_chr(buffer, bytes_read, '\n');
 		store_static(m_line, buffer, bytes_read);
+		end = str_size_chr(m_line, '\n');
 		if (end)
-			 break ;
+			break ;
 	}
+	return (end);
+}
+
+void	replace_static(char **m_stored, char *end)
+{
 	
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*line = NULL;
+	static char	*stored = NULL;
+	char		*one_line;
+	char		*end;
 	int			bytes_read;
+	int			i;
 
+	end = read_buffer(fd, &stored);
+	if (!end)
+		return (stored);
+	i = 0;
+	while (&stored[i] != end)
+		i++;
+	one_line = (char *) malloc(i + 2);
+	if (!one_line)
+		return (NULL);
+	i = -1;
+	while (&stored[++i] != end)
+		one_line[i] = stored[i];
+	one_line[i] = stored[i];
+	one_line[i+1] = '\0';
+	replace_stored(&stored, end);
+	return (one_line);
+}
 
+#include <stdio.h>
+#include <fcntl.h>
+int	main(void)
+{
+	char	*line;
+	int		fd;
+
+	fd = open("./info.txt", O_RDONLY);
+	line = get_next_line(fd);
+	printf("main:%s\n", line);
+	line = get_next_line(fd);
+	printf("main: %s\n", line);
+	return (0);
 }
