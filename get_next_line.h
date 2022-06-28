@@ -6,7 +6,7 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/27 22:28:44 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/28 14:15:26 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/28 15:52:52 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 typedef struct	s_store
 {
 	char	*stored;
-	size_t	size;
+	int	size;
 	int		show_lines;
 }				t_store;
 

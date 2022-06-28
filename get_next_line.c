@@ -6,23 +6,24 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/28 14:09:55 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/28 15:38:45 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/28 18:14:33 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-void	initialize_store(t_store *store)
+void	initialize_store(t_store **store)
 {
-	if (!store)
+	if (!*store)
 	{
-		store = (t_store *) malloc(sizeof(t_store));
-		if (!store)
+		*store = (t_store *) malloc(sizeof(t_store));
+		if (!*store)
 			return ;
-		store->stored = NULL;
-		store->size = 0;
-		store->show_lines = 0;
+		(*store)->stored = NULL;
+		(*store)->size = 0;
+		(*store)->show_lines = 0;
 	}
+	(*store)->show_lines++;
 }
 
 char	*str_size_chr(char *str, size_t size, char c)
@@ -45,26 +46,20 @@ void	store_buffer(t_store *store, char *buffer, int b_size)
 	int		i;
 	int		j;
 
-	aux = (char *) malloc(store->size + b_size);
-	i = 0;
-	while (i < store->size)
-	{
+	aux = (char *) malloc(store->size + b_size + 1);
+	i = -1;
+	while (++i < store->size)
 		aux[i] = store->stored[i];
-		i++;
-	}
-	j = 0;
-	while (j < b_size)
-	{
-		aux[i] = buffer[j];
-		i++;
-		j++;
-	}
+	j = -1;
+	while (++j < b_size)
+		aux[i + j] = buffer[j];
+	aux[i + j] = '\0';
 	if (store->stored)
 		free(store->stored);
 	store->stored = aux;
 }
 
-void	read_line(int fd, t_store *store)
+int	read_line(int fd, t_store *store)
 {
 	char			*buffer;
 	int				bytes_read;
@@ -78,20 +73,33 @@ void	read_line(int fd, t_store *store)
 			break ;
 		store_buffer(store, buffer, bytes_read);
 		if (str_size_chr(buffer, bytes_read, '\n'))
-		{
-			store->show_lines++;
 			break ;
-		}
 	}
+	return (bytes_read );
 }
 
 char	*get_next_line(int fd)
 {
-	static t_store	*s = NULL;
+	static	t_store	*s = NULL;
+	char	*text;
+	int		i;
+	int		lines;
+	char	*end;
 
-	initialize_store(s);
-	read_line(fd, s);
-	return (s->stored);
+	initialize_store(&s);
+	if (!read_line(fd, s))
+		return (s->stored);
+
+	i = 0;
+	lines = s->show_lines;
+	while (lines)
+	{
+		if (s->stored[i] == '\n')
+			lines--;
+		i++;
+	}
+
+	return (text);
 }
 
 #include <stdio.h>
@@ -103,5 +111,14 @@ int	main(void)
 
 	fd = open("./info.txt", O_RDONLY);
 	line = get_next_line(fd);
-	write(1, line, 50);
+	printf("%s\n", line);
 }
+
+/*
+
+123
+123456
+
+buff = 123\n1
+static = 
+*/
