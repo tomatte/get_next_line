@@ -6,7 +6,7 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/28 18:30:35 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/28 22:15:49 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/28 23:06:09 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ void	store_static(char **m_line, char *buffer, ssize_t bytes_read)
 	else
 	{
 		new = m_join(*m_line, buffer, bytes_read);
-		printf("join: %s\n", new);
 		if (!new)
 			return ;
 		free(*m_line);
@@ -77,31 +76,50 @@ void	store_static(char **m_line, char *buffer, ssize_t bytes_read)
 	}
 }
 
-char	*read_buffer(int fd, char **m_line)
+int	read_buffer(int fd, char **m_line, char **end)
 {
 	char		*buffer;
-	char		*end;
 	ssize_t		bytes_read;
 
 	buffer = (char *) malloc(BUFFER_SIZE);
 	if (!buffer)
-		return (NULL);
+		return (0);
 	while (1)
 	{
 		bytes_read = read(fd, buffer, BUFFER_SIZE);
 		if (bytes_read <= 0)
-			break ;
+		{
+			free(buffer);
+			return (0);
+		}
 		store_static(m_line, buffer, bytes_read);
-		end = str_size_chr(m_line, '\n');
-		if (end)
+		*end = str_size_chr(m_line, '\n');
+		if (*end)
 			break ;
 	}
-	return (end);
+	if (buffer)
+		free(buffer);
+	return (1);
 }
 
-void	replace_static(char **m_stored, char *end)
+void	replace_stored(char **m_stored, char *end)
 {
-	
+	char	*aux;
+	int		i;
+
+	i = 0;
+	end++;
+	while (end[i])
+		i++;
+	aux = (char *) malloc(i + 1);
+	if (!aux)
+		return ;
+	i = -1;
+	while (end[++i])
+		aux[i] = end[i];
+	aux[i] = '\0';
+	free(*m_stored);
+	*m_stored = aux;
 }
 
 char	*get_next_line(int fd)
@@ -112,9 +130,12 @@ char	*get_next_line(int fd)
 	int			bytes_read;
 	int			i;
 
-	end = read_buffer(fd, &stored);
-	if (!end)
-		return (stored);
+	if (!read_buffer(fd, &stored, &end))
+	{
+		if (stored)
+			free(stored);
+		return (NULL);
+	}
 	i = 0;
 	while (&stored[i] != end)
 		i++;
@@ -132,15 +153,41 @@ char	*get_next_line(int fd)
 
 #include <stdio.h>
 #include <fcntl.h>
-int	main(void)
+
+int main(void)
+{
+    int        fd;
+    char    *buf;
+
+    fd = open("./info.txt", O_RDONLY);
+    while (1)
+    {
+        buf = get_next_line(fd);
+        printf("%s", buf);
+        if (!buf)
+            break;
+        free(buf);
+    }
+	free(buf);
+    close(fd);
+    return (0);
+}
+
+/* int	main(void)
 {
 	char	*line;
 	int		fd;
 
 	fd = open("./info.txt", O_RDONLY);
+
 	line = get_next_line(fd);
-	printf("main:%s\n", line);
+	printf("%s", line);
+
 	line = get_next_line(fd);
-	printf("main: %s\n", line);
+	printf("%s", line);
+	
+	line = get_next_line(fd);
+	printf("%s", line);
+	printf("\n");
 	return (0);
-}
+} */
