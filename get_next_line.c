@@ -6,79 +6,11 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/29 15:50:36 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/29 19:04:57 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/29 20:41:37 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
-char	*m_strdup(char	*str, char end, int size)
-{
-	int		i;
-	char	*dup;
-
-	i = 0;
-	while (str[i] != end)
-		i++;
-	if (end)
-		i++;
-	dup = (char *) malloc(i + 1);
-	if (!dup)
-		return (NULL);
-	i = -1;
-	while (str[++i] != end)
-		dup[i] = str[i];
-	if (end)
-		dup[++i] = end;
-	dup[++i] = '\0';
-	return (dup);
-}
-
-char	*last_call(char **storage)
-{
-	char	*line;
-
-	line = m_strdup(*storage, '\0', 0);
-	if (!line)
-		return (NULL);
-	free(*storage);
-	*storage = NULL;
-	return (line);
-}
-
-char	*find_chr(char **str, char c)
-{
-	int	i;
-
-	i = 0;
-	while ((*str)[i] != c && (*str)[i])
-		i++;
-	if ((*str)[i] == c)
-		return (&(*str)[i]);
-	return (NULL);
-}
-
-void	remove_first_line(char **storage)
-{
-	char	*begin;
-	char	*new;
-	int		i;
-
-	begin = find_chr(storage, '\n');
-	begin++;
-	i = 0;
-	while (begin[i])
-		i++;
-	new = (char *) malloc(i + 1);
-	if (!new)
-		return ;
-	i = -1;
-	while (begin[++i])
-		new[i] = begin[i];
-	new[i] = '\0';
-	free(*storage);
-	*storage = new;
-}
 
 int	verify_line(char **storage, char **single_line)
 {
@@ -86,41 +18,11 @@ int	verify_line(char **storage, char **single_line)
 		return (0);
 	if (!find_chr(storage, '\n'))
 		return (0);
-	*single_line = m_strdup(*storage, '\n');
+	*single_line = strdup_by_chr(*storage, '\n');
 	if (!*single_line)
 		return (-1);
 	remove_first_line(storage);
 	return (1);
-}
-
-char	*m_join(char *s1, char *buff, ssize_t b_size)
-{
-	int		i;
-	int		j;
-	char	*new;
-
-	i = 0;
-	if (!s1)
-	{
-		new = m_strdup(buff, '\0', &buff[b_size - 1]);
-		if (!new)
-			return (NULL);
-		return (new);
-	}
-	i = 0;
-	while (s1[i])
-		i++;
-	new = (char *) malloc(i + b_size + 1);
-	if (!new)
-		return (NULL);
-	i = -1;
-	while (s1[++i])
-		new[i] = s1[i];
-	j = -1;
-	while (++j < b_size)
-		new[i + j] = buff[j];
-	new[i + j] = '\0';
-	return (new);
 }
 
 void	store_in_static(char **storage, char *buffer, ssize_t b_size)
@@ -132,6 +34,26 @@ void	store_in_static(char **storage, char *buffer, ssize_t b_size)
 		return ;
 	free(*storage);
 	*storage = new;
+}
+
+int	no_return(char *storage, char *buffer, ssize_t r_bytes)
+{
+	if (r_bytes < 0)
+	{
+		free(buffer);
+		return (-1);
+	}
+	if (!storage && !r_bytes)
+	{
+		free(buffer);
+		return (0);
+	}
+	if (storage && !r_bytes)
+	{
+		free(buffer);
+		return (2);
+	}
+	return (1);
 }
 
 int	read_buffer(int fd, char **storage, char **s_line)
@@ -146,14 +68,16 @@ int	read_buffer(int fd, char **storage, char **s_line)
 	while (1)
 	{
 		r_bytes = read(fd, buffer, BUFFER_SIZE);
-		if (!*storage && !r_bytes)
-			return (0);
-		if (*storage && !r_bytes)
-			return (2);
+		flag = no_return(*storage, buffer, r_bytes);
+		if (flag != 1)
+			return (flag);
 		store_in_static(storage, buffer, r_bytes);
 		flag = verify_line(storage, s_line);
 		if (flag)
+		{
+			free(buffer);
 			return (flag);
+		}
 	}
 }
 
@@ -169,31 +93,47 @@ char	*get_next_line(int fd)
 	else if (flag == -1)
 		return (NULL);
 	flag = read_buffer(fd, &storage, &single_line);
-	if (!flag || flag == -1)
-		return (NULL);
 	if (flag == 1)
 		return (single_line);
-	if (flag == 2)
+	else if (flag == 2)
 	{
-		single_line = last_call(&storage);
+		single_line = strdup_by_chr(storage, '\0');
+		free(storage);
+		storage = NULL;
 		if (!single_line)
 			return (NULL);
 		return (single_line);
 	}
+	if (storage)
+	{
+		free(storage);
+		storage = NULL;
+	}
+	return (NULL);
 }
 
-#include <fcntl.h>
+/* 
 #include <stdio.h>
-int	main(void)
+#include <fcntl.h>
+  int main(void)
 {
-	int 	fd;
-	char	*line;
+    int        fd;
+    char    *buf;
 
-	fd = open("./opa.txt", O_RDONLY);
-	line = get_next_line(fd);
-	printf("%s\n", line);
+    fd = open("./opa.txt", O_RDONLY);
+    while (1)
+    {
+        buf = get_next_line(fd);
+        if (!buf)
+            break;
+		printf("%s", buf);
+        free(buf);
+    }
+    close(fd);
+	printf("\n");
+    return (0);
 }
-
+ */
 /*
 verificar se ja foi lido
 ler com um buffer : se for lido 0 bytes...
@@ -223,5 +163,7 @@ remove_from storage()
 
 necessário:
 	join pra juntar storage e buffer, se storage for null, usa apenas o buffer
-	dup: pra criar nova string que terminará apṕs o \n ou no \0 caso nao tiver quebra de linha
+	
+	dup: pra criar nova string que terminará 
+	apṕs o \n ou no \0 caso nao tiver quebra de linha
 */
