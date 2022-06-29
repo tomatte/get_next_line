@@ -6,7 +6,7 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/29 15:50:36 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/29 21:38:26 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/29 22:33:59 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,80 +107,3 @@ char	*get_next_line(int fd)
 		del(&storage);
 	return (NULL);
 }
-
-/* 
-#include <stdio.h>
-#include <fcntl.h>
-  int main(void)
-{
-    int        fd;
-    char    *buf;
-
-    fd = open("./opa.txt", O_RDONLY);
-	buf = get_next_line(fd);
-	printf("%s", buf);
-	free(buf);
-
-	buf = get_next_line(fd);
-	printf("%s", buf);
-	free(buf);
-
-    close(fd);
-	printf("\n");
-    return (0);
-} */
-/* 
-#include <stdio.h>
-#include <fcntl.h>
-  int main(void)
-{
-    int        fd;
-    char    *buf;
-
-    fd = open("./opa.txt", O_RDONLY);
-    while (1)
-    {
-        buf = get_next_line(fd);
-        if (!buf)
-            break;
-		printf("%s", buf);
-        free(buf);
-    }
-    close(fd);
-	printf("\n");
-    return (0);
-}
- */
-/*
-verificar se ja foi lido
-ler com um buffer : se for lido 0 bytes...
-armazenar em storage
-verificar se tem quebra de linha
-	falso? do again
-
-	verdadeiro?
-		criar uma nova string até a quebra de linha pra ser retornada no final
-		remove_from_storage()
-
-remove_from storage()
-{
-	deixar no buffer apenas o que nao sera retornado:
-		criar uma nova string aux apartir da quebra de linha
-		liberar storage
-		atribuir aux à storage
-}
-
-...se for lido 0 bytes no buffer
-	se storage for NULL, retornar NULL
-
-	criar uma nova string com o que tiver restado em storage
-	liberar storage
-	atribuir NULL à storage
-
-
-necessário:
-	join pra juntar storage e buffer, se storage for null, usa apenas o buffer
-	
-	dup: pra criar nova string que terminará 
-	apṕs o \n ou no \0 caso nao tiver quebra de linha
-*/

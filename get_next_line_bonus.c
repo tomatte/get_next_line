@@ -6,7 +6,7 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/29 22:09:49 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/29 22:21:25 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/29 22:34:10 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,70 +109,3 @@ char	*get_next_line(int fd)
 		del(&storage[fd]);
 	return (NULL);
 }
-
-/* 
-#include <stdio.h>
-#include <fcntl.h>
-  int main(void)
-{
-    int		fd;
-	int		fd2;
-    char    *buf;
-	char	*buf2;
-
-    fd = open("./opa.txt", O_RDONLY);
-    while (1)
-    {
-        buf = get_next_line(fd);
-        if (!buf)
-            break;
-		printf("%s", buf);
-        free(buf);
-    }
-    fd2 = open("./info.txt", O_RDONLY);
-    while (1)
-    {
-        buf2 = get_next_line(fd2);
-        if (!buf2)
-            break;
-		printf("%s", buf2);
-        free(buf2);
-    }
-    close(fd2);
-	printf("\n");
-    return (0);
-}
- */
-/*
-verificar se ja foi lido
-ler com um buffer : se for lido 0 bytes...
-armazenar em storage
-verificar se tem quebra de linha
-	falso? do again
-
-	verdadeiro?
-		criar uma nova string até a quebra de linha pra ser retornada no final
-		remove_from_storage()
-
-remove_from storage()
-{
-	deixar no buffer apenas o que nao sera retornado:
-		criar uma nova string aux apartir da quebra de linha
-		liberar storage
-		atribuir aux à storage
-}
-
-...se for lido 0 bytes no buffer
-	se storage for NULL, retornar NULL
-
-	criar uma nova string com o que tiver restado em storage
-	liberar storage
-	atribuir NULL à storage
-
-
-necessário:
-	join pra juntar storage e buffer, se storage for null, usa apenas o buffer
-	
-	dup: pra criar nova string que terminará 
-	apṕs o \n ou no \0 caso nao tiver quebra de linha
-*/
