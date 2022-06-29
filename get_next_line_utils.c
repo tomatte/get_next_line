@@ -6,19 +6,19 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/29 20:07:52 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/29 20:47:10 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/29 21:38:04 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*strdup_by_chr(char	*str, char end, char *a_end)
+char	*strdup_flex(char	*str, char end, char *mem)
 {
 	int		i;
 	char	*dup;
 
 	i = 0;
-	while (str[i] != end && str[i])
+	while ((str[i] != end && str[i] && end != -1) || (&str[i] != mem && mem))
 		i++;
 	if (str[i])
 		i++;
@@ -26,7 +26,7 @@ char	*strdup_by_chr(char	*str, char end, char *a_end)
 	if (!dup)
 		return (NULL);
 	i = 0;
-	while (str[i] != end && str[i])
+	while ((str[i] != end && str[i] && end != -1) || (&str[i] != mem && mem))
 	{
 		dup[i] = str[i];
 		i++;
@@ -37,28 +37,6 @@ char	*strdup_by_chr(char	*str, char end, char *a_end)
 		i++;
 	}
 	dup[i] = '\0';
-	return (dup);
-}
-
-char	*strdup_by_address(char	*str, char *end)
-{
-	int		i;
-	char	*dup;
-
-	i = 0;
-	while (&str[i] != end)
-		i++;
-	if (str[i])
-		i++;
-	dup = (char *) malloc(i + 1);
-	if (!dup)
-		return (NULL);
-	i = -1;
-	while (&str[++i] != end)
-		dup[i] = str[i];
-	if (str[i])
-		dup[i] = str[i];
-	dup[++i] = '\0';
 	return (dup);
 }
 
@@ -82,7 +60,7 @@ char	*m_join(char *s1, char *buff, ssize_t b_size)
 
 	if (!s1)
 	{
-		new = strdup_by_address(buff, &buff[b_size - 1]);
+		new = strdup_flex(buff, -1, &buff[b_size - 1]);
 		if (!new)
 			return (NULL);
 		return (new);
@@ -103,6 +81,12 @@ char	*m_join(char *s1, char *buff, ssize_t b_size)
 	return (new);
 }
 
+void	del(char	**mem)
+{
+	free(*mem);
+	*mem = NULL;
+}
+
 void	remove_first_line(char **storage)
 {
 	char	*begin;
@@ -111,6 +95,11 @@ void	remove_first_line(char **storage)
 
 	begin = find_chr(storage, '\n');
 	begin++;
+	if (!*begin)
+	{
+		del(storage);
+		return ;
+	}
 	i = 0;
 	while (begin[i])
 		i++;

@@ -6,7 +6,7 @@
 /*   By: dbrandao <dbrandao@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/29 15:50:36 by dbrandao          #+#    #+#             */
-/*   Updated: 2022/06/29 20:41:37 by dbrandao         ###   ########.fr       */
+/*   Updated: 2022/06/29 21:38:26 by dbrandao         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ int	verify_line(char **storage, char **single_line)
 		return (0);
 	if (!find_chr(storage, '\n'))
 		return (0);
-	*single_line = strdup_by_chr(*storage, '\n');
+	*single_line = strdup_flex(*storage, '\n', NULL);
 	if (!*single_line)
 		return (-1);
 	remove_first_line(storage);
@@ -97,21 +97,38 @@ char	*get_next_line(int fd)
 		return (single_line);
 	else if (flag == 2)
 	{
-		single_line = strdup_by_chr(storage, '\0');
-		free(storage);
-		storage = NULL;
+		single_line = strdup_flex(storage, '\0', NULL);
+		del(&storage);
 		if (!single_line)
 			return (NULL);
 		return (single_line);
 	}
 	if (storage)
-	{
-		free(storage);
-		storage = NULL;
-	}
+		del(&storage);
 	return (NULL);
 }
 
+/* 
+#include <stdio.h>
+#include <fcntl.h>
+  int main(void)
+{
+    int        fd;
+    char    *buf;
+
+    fd = open("./opa.txt", O_RDONLY);
+	buf = get_next_line(fd);
+	printf("%s", buf);
+	free(buf);
+
+	buf = get_next_line(fd);
+	printf("%s", buf);
+	free(buf);
+
+    close(fd);
+	printf("\n");
+    return (0);
+} */
 /* 
 #include <stdio.h>
 #include <fcntl.h>
